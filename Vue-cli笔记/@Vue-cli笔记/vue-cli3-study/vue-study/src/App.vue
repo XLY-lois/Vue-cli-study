@@ -1,9 +1,13 @@
 <template>
   <div id="nav">
     <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+    <!-- <router-link to="/about">About</router-link> -->
+    <!-- 通过name属性跳转路由 -->
+    <router-link :to="{ name:'About' }">About</router-link>
   </div>
   <router-view/>
+  <router-view name="Email"/>
+  <router-view name="Tel"/>
 </template>
 
 <style lang="less">

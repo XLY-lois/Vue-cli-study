@@ -1,18 +1,53 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    home
+    <b>{{ food }}</b>
+    <!-- <img alt="Vue logo" src="../assets/logo.png"> -->
+    <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
+    <button @click="handleClick('back')">返回上一页</button>
+    <button @click="handleClick('push')">跳转到parent</button>
+    <button @click="handleClick('replace')">替换到parent</button>
+    <button @click="handleClick('pushToArgu')">跳转到argu</button>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import HelloWorld from "@/components/HelloWorld.vue";
 
 export default {
-  name: 'home',
+  name: "home",
   components: {
-    HelloWorld
-  }
-}
+    HelloWorld,
+  },
+  props: {
+    food: {
+      type: String,
+      default: 'apple'
+    }
+  },
+  methods: {
+    handleClick(type) {
+      if (type === "back") {
+        this.$router.go(-1); //后退一页 或者可用back()
+      } else if (type === "push") {
+        this.$router.push("/parent"); //也可以用命名路由方式传入对象通过name值跳转
+      } else if (type === "replace") {
+        this.$router.replace({
+          name: "parent",
+          query: {
+            name: "lois",//添加query后能在url中拼接name和它的值
+          },
+        });
+      } else if (type === "pushToArgu") {
+        this.$router.push({
+          name: "argu",
+          params: {
+            name: 'jasmine'//此时可以通过params属性向路由（动态）传值
+          }
+        });
+      }
+    },
+  },
+};
 </script>

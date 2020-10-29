@@ -26,6 +26,20 @@ export default {
       default: 'apple'
     }
   },
+  beforeRouteEnter(to,from,next) {
+    //路由要进来，页面还没有渲染的时候触发，此时不能用this获取当前组件实例
+    // console.log(from.name);
+    next();
+  },
+  beforeRouteLeave(to,from,next) {
+    //在用户离开前调用  如询问是否保存数据
+    const leave = confirm('您确定要离开吗？');
+    if(leave) {
+      next()
+    }else {
+      next(false);//传入false 此时就不会跳转
+    }
+  },
   methods: {
     handleClick(type) {
       if (type === "back") {

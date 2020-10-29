@@ -3,6 +3,7 @@
     <AInput @input="handleInput"></AInput>
     {{ inputVal }}
     <AShow :content="inputVal" />
+    <p>{{ appName }}</p>
   </div>
 </template>
 
@@ -19,6 +20,12 @@ export default {
   components: {
     AInput,
     AShow
+  },
+  computed: {
+    appName() {
+      console.log(this)
+      return this.$store.state.appName
+    }
   },
   methods: {
     handleInput(val) {

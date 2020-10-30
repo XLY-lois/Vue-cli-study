@@ -561,3 +561,253 @@ export default {
 }
 </style>
 ```
+##### Vuex state
+```
+//store/stete.js
+const state = {
+  appName: 'hello'
+}
+export default state
+
+//store/module/user.js
+const state = {
+  userName: 'lois'
+}
+const mutations = {
+
+}
+const actions = {
+
+}
+export default {
+  state,
+  mutations,
+  actions
+}
+```
+- 有两种方法获取state中的状态值
+```
+//store.vue
+<template>
+  <div>
+    <AInput @input="handleInput"></AInput>
+    {{ inputVal }}
+    <AShow :content="inputVal" />
+    <p>appName: {{ appName }}</p>
+    <p>userName: {{ userName }}</p>
+  </div>
+</template>
+
+<script>
+import AInput from '../components/AInput'
+import AShow from '../components/AShow'
+import vuex from 'vuex'
+
+const mapState = vuex.mapState
+
+export default {
+  data() {
+    return {
+      inputVal: ''
+    }
+  },
+  components: {
+    AInput,
+    AShow
+  },
+  computed: {
+    userName() {//方法1
+      return this.$store.state.user.userName
+    },
+    ...mapState([//方法2
+      'appName'
+    ])
+     //或者可以不传入数组 传入一个对象{appName: state => state.appName}
+  },
+  methods: {
+    handleInput(val) {
+      this.inputVal = val;
+    }
+  }
+}
+</script>
+```
+##### Vuex getter 依赖于别个state
+1. 新建文件src\store\getters.js
+2. 注入到index.js
+3. 编写getters
+```
+const getters = {
+  appNameWithVersion: (state) => { //传入的参数是当前vuex实例中同级的state
+    return `${state.appName}v2.0`
+  }
+}
+export default getters
+
+```
+4. 使用getters
+```
+//store.vue
+...
+<p>appNameWithVersion: {{ appNameWithVersion }}</p>
+...
+computed: {
+    userName() {
+      return this.$store.state.user.userName
+    },
+    ...mapState([
+      'appName'
+    ]),
+    //或者可以不传入数组 传入一个对象{appName: state => state.appName}
+    inputValLateLetter() {
+      return this.inputVal.substr(-1,1)
+    },
+    appNameWithVersion () {
+      return this.$store.getters.appNameWithVersion
+    }
+  },
+```
+```
+//用mapGetters获取
+...
+const mapGetters = vuex.mapGetters
+export default {
+...
+  computed: {
+    ...mapGetters([
+      'appNameWithVersion'
+    ]),//here
+```
+```
+//使用模块中的getters
+//src\store\getters.js
+const state = {
+  userName: 'lois'
+}
+const getters = {
+  firstLetter: (state) => {
+    return state.userName.substr(0,1)//获取名字的第一个字母
+  }
+}
+const mutations = {
+
+}
+const actions = {
+
+}
+export default {
+  namespaced: true,//命名空间
+  state,
+  getters,
+  mutations,
+  actions
+}
+//store.vue 记得要加模块名 
+...mapGetters('user',[
+      // 'appNameWithVersion',
+      'firstLetter'
+    ]),
+```
+##### Vuex mutations
+- 在组件中如果想修改state中的值，不能通过直接赋值的方式来改变值，需要通过mutations
+```
+//src\store\mutations.js
+const mutations = { //用来定义一些修改全局state值的方法
+  set_app_name(state,params){
+    state.appName = params;
+  }
+}
+
+export default mutations
+
+```
+```
+//store.vue
+<template>
+  <div>
+    <p>appName: {{ appName }}</p>
+    <button @click="handleChangeAppName">修改appName</button>
+  </div>
+</template>
+...
+methods: {
+    handleInput(val) {
+      this.inputVal = val;
+    },
+    handleChangeAppName() {
+      // this.appName = 'newName';//不行 会报错
+      this.$store.commit('set_app_name','newAppName')
+      //第一个参数是mutations中的方法 第二个参数是传给方法的参数(新的名字)
+    }
+  }
+
+```
+- 往state中添加新值
+```
+//mutations.js
+import vue from 'vue'
+
+const mutations = { //用来定义一些修改全局state值的方法
+  set_app_name(state,params){
+    state.appName = params;
+    //如果是多个参数 那么传进来的params会是一个对象(对象的键具体看在组价中使用是传进来的是什么 然后用点操作获取对象属性)
+  },
+  set_app_version(state){
+    vue.set(state,'appVersion','v2.0');//参数： state对象 新值的名 新值的值
+  }
+}
+
+export default mutations
+
+```
+```
+//调用 store.vue
+    <p>{{ appVersion }}</p>
+    ...
+...mapState([
+      'appName',
+      'appVersion'
+    ]),
+```
+##### vuex actions 处理异步操作
+```
+//src\store\actions.js
+import { getAppName } from  '../api/app.js';
+
+const actions = {
+  updateAppName({ commit }) { //模拟一个异步的接口请求
+    getAppName().then(res => {
+      // console.log(res);
+      commit('set_app_name',res.info.appName)
+    }).catch(err => {
+      console.log(err)
+    })
+  }
+}
+
+export default actions
+
+```
+```
+//src\api\app.js
+export const getAppName = () => { //模拟接口请求
+  return new Promise((resolve,reject) => {
+    const err = null;
+    setTimeout(() => {
+      if(!err) resolve({code: 200,info: {appName: 'newAppNameHHHH'}});
+      else reject(err)
+    })
+  })
+}
+
+```
+```
+//store.vue
+handleChangeAppName() {
+      // this.appName = 'newName';//不行 会报错
+      this.$store.commit('set_app_name','newAppName');
+      this.$store.commit('set_app_version');
+      this.updateAppName();
+    },
+```
+##### vuex状态管理进阶

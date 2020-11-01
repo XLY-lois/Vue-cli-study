@@ -811,3 +811,98 @@ handleChangeAppName() {
     },
 ```
 ##### vuex状态管理进阶
+###### 插件
+1. 在store文件夹中新建文件夹plugin
+- 持久化存储：刷新浏览器时store中的状态是会被清除的（存于内存），但有的数据我们想让他不被清除
+2. 新建持久化存储插件 src\store\plugin\saveInLocal.js
+```
+export default store => { //这个函数会在每次store初始化时调用
+  //
+  store.subscribe((mutation,state) => {
+    //
+  })//每次提交mutation后都会执行里面的回调函数
+}
+
+
+```
+3. 使用插件
+```
+//src\store\index.js
+import saveInLocal from './plugin/saveInLocal'
+
+Vue.use(Vuex)
+
+const store = new Vuex.Store({
+  state,
+  getters,
+  mutations,
+  actions,
+  modules: {
+    user
+  },
+  plugins: [
+    saveInLocal
+  ]
+})
+```
+4. 持久化存储的实现
+```
+export default store => { //这个函数会在每次store初始化时调用
+  console.log('store初始化了');
+  //2. 每次刷新浏览器的时候再取出来
+  if(localStorage.state) {
+    store.replaceState(JSON.parse(localStorage.state));//替换掉原本新的state
+  }
+  store.subscribe((mutation,state) => {
+    localStorage.state = JSON.stringify(state);
+    //1. 提交后将state以json字符串的形式存储在localStorage中
+  })//每次提交mutation后都会执行里面的回调函数
+}
+
+```
+###### 严格模式
+- 此时如果使用赋值的方法来直接修改state里面的状态是会报错的，如果为false或者不设置则不会报错
+```
+const store = new Vuex.Store({
+  strict: true,//here
+  state,
+  getters,
+  mutations,
+  actions,
+  modules: {
+    user
+  },
+  plugins: [
+    saveInLocal
+  ]
+})
+```
+
+##### Ajax
+###### 跨域问题
+- 方法1 代理
+  - 意思是将你前端的所有请求都发送到 http://localhost:4000 这个端口号
+```
+const BASE_URL = process.env.NODE_ENV === 'production' ? '/production-sub-path/' : '/'
+
+module.exports = {
+  lintOnSave: false,
+  publicPath: BASE_URL,
+  productionSourceMap: false,
+  devServer: {
+    proxy: 'http://localhost:4000'//here
+  }
+}
+
+
+```
+- 方法2 后端设置header值 解决跨域
+###### axios 封装
+1. 新建文件src\lib\axios.js 引入axios
+2. 设置baseUrl
+```
+//src\config
+export const baseUrl = process.env.NODE_ENV === 'production' //判断环境决定baseUrl
+? 'http://production' : '' //设置了代理可以直接写一个空字符串
+
+```

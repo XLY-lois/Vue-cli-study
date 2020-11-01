@@ -1,6 +1,7 @@
 <template>
   <div>
     <AInput @input="handleInput"></AInput>
+    <!-- <AInput v-model="stateValue" ></AInput> -->
     <p>{{ inputVal }} last letter is {{ inputValLateLetter }}</p>
     <!-- <AShow :content="inputVal" /> -->
     <p>appName: {{ appName }}</p>
@@ -39,7 +40,8 @@ export default {
     },
     ...mapState([
       'appName',
-      'appVersion'
+      'appVersion',
+      'stateValue'
     ]),
     ...mapGetters([
       'appNameWithVersion',
